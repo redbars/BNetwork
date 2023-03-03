@@ -1,6 +1,6 @@
 # BNetwork
 
-### 1. Create Endpotin path:
+### 1. Create Endpotint path:
 ```
 enum AuthEndPointPath {
   case signUpWithLogin
@@ -22,9 +22,9 @@ extension AuthEndPointPath: EndPointPathProtocol {
 ```
 
 
-### 2. Create Endpotin request:
+### 2. Create Endpotint request:
 
-###### Create Endpotin request with json body:
+###### Create Endpotint request with json body:
 ```
 public func signUpWithLogin(data: RequestModel) async throws -> ResponceModel {
   let body: [String: Any] = data.toDictionary() ?? [:]
@@ -42,7 +42,7 @@ public func signUpWithLogin(data: RequestModel) async throws -> ResponceModel {
 }
 ```
 
-###### Create Endpotin request with url params:
+###### Create Endpotint request with url params:
 ```
 public func signUpWithLogin(data: RequestModel) async throws -> ResponceModel {
   let params: [String: Any] = data.toDictionary() ?? [:]
@@ -60,7 +60,7 @@ public func signUpWithLogin(data: RequestModel) async throws -> ResponceModel {
 }
 ```
 
-###### Create Endpotin request without data:
+###### Create Endpotint request without data:
 ```
 public func signOut() async throws -> ResponceModel {
   let endpoint = EndPoint()
@@ -74,7 +74,7 @@ public func signOut() async throws -> ResponceModel {
 }
 ```
 
-###### Create Endpotin request without data:
+###### Create Endpotint request without data:
 ```
 public func signOut() async throws -> ResponceModel {
   let endpoint = EndPoint()
@@ -88,7 +88,7 @@ public func signOut() async throws -> ResponceModel {
 }
 ```
 
-###### Create Endpotin request without data:
+###### Create Endpotint request without data:
 
 Use MultipartData:
 ```
