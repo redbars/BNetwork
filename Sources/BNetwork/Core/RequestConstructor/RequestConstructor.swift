@@ -1,5 +1,8 @@
 
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public protocol BNetworkRequestConstructorProtocol {
     func buildRequest(from endPoint: BNetworkEndPointProtocol) async throws -> URLRequest
