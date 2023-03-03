@@ -21,6 +21,6 @@ let package = Package(
             dependencies: []),
         .testTarget(
             name: "BNetworkTests",
-            dependencies: []),
+            dependencies: ["BNetwork"]),
     ]
 )

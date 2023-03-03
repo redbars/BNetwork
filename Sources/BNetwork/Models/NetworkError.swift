@@ -59,6 +59,6 @@ public extension BNetwork.NetworkError {
     
     static var missingURL: NetworkError {
         return NetworkError(key: "missingURL",
-                            value: "URL is nil.")
+                            value: "URL is nil")
     }
 }
