@@ -130,7 +130,7 @@ extension EndPoint {
   func asyncRequest<A:Decodable>() async throws -> A {
     typealias B = ErrorsResponse
     
-    let result: ResponseResultDataAsync<T,B> = try await Request()
+    let result: ResponseResultDataAsync<A,B> = try await Request()
       .request(self)
 
     if let errorBody = result.errorBody {
