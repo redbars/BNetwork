@@ -88,7 +88,7 @@ public func signOut() async throws -> ResponceModel {
 }
 ```
 
-###### Create Endpotint request without data:
+###### Create Endpotint request with multipart data:
 
 Use MultipartData:
 ```
