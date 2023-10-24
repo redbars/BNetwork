@@ -42,7 +42,7 @@ public extension BNetwork {
                     }.resume()
                 }
 #else
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await URLSession.shared.datawithTaskCancellation(with: request)
 #endif
             
             let responseData = ResponseData(body: data,
@@ -162,3 +162,130 @@ public extension BNetwork {
 //        }
     }
 }
+
+extension URLSession {
+    @available(iOS, deprecated: 15, message: "Use `data(for:delegate:)` instead")
+    @available(macOS, deprecated: 12, message: "Use `data(for:delegate:)` instead")
+    func datawithTaskCancellation(with request: URLRequest) async throws -> (Data, URLResponse) {
+        let sessionTask = SessionTask(session: self)
+
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                Task {
+                    await sessionTask.data(for: request) { data, response, error in
+                        guard let data, let response else {
+                            continuation.resume(throwing: error ?? URLError(.badServerResponse))
+                            return
+                        }
+
+                        continuation.resume(returning: (data, response))
+                    }
+                }
+            }
+        } onCancel: {
+            Task { await sessionTask.cancel() }
+        }
+    }
+}
+
+private extension URLSession {
+    actor SessionTask {
+        var state: State = .ready
+        private let session: URLSession
+
+        init(session: URLSession) {
+            self.session = session
+        }
+
+        func cancel() {
+            if case .executing(let task) = state {
+                task.cancel()
+            }
+            state = .cancelled
+        }
+    }
+}
+
+// MARK: Data
+
+extension URLSession.SessionTask {
+    func data(for request: URLRequest, completionHandler: @Sendable @escaping (Data?, URLResponse?, Error?) -> Void) {
+        if case .cancelled = state {
+            completionHandler(nil, nil, CancellationError())
+            return
+        }
+
+        let task = session.dataTask(with: request, completionHandler: completionHandler)
+
+        state = .executing(task)
+        task.resume()
+    }
+}
+
+extension URLSession.SessionTask {
+    enum State {
+        case ready
+        case executing(URLSessionTask)
+        case cancelled
+    }
+}
+
+//extension URLSession {
+//    @available(iOS, deprecated: 15, message: "Use `download(from:delegate:)` instead")
+//    @available(macOS, deprecated: 12, message: "Use `download(from:delegate:)` instead")
+//    func downloadwithTaskCancellation(with url: URL) async throws -> (URL, URLResponse) {
+//        try await downloadwithTaskCancellation(with: URLRequest(url: url))
+//    }
+//
+//    @available(iOS, deprecated: 15, message: "Use `download(for:delegate:)` instead")
+//    @available(macOS, deprecated: 12, message: "Use `download(for:delegate:)` instead")
+//    func downloadwithTaskCancellation(with request: URLRequest) async throws -> (URL, URLResponse) {
+//        let sessionTask = SessionTask(session: self)
+//
+//        return try await withTaskCancellationHandler {
+//            try await withCheckedThrowingContinuation { continuation in
+//                Task {
+//                    await sessionTask.download(for: request) { location, response, error in
+//                        guard let location, let response else {
+//                            continuation.resume(throwing: error ?? URLError(.badServerResponse))
+//                            return
+//                        }
+//
+//                        // since continuation can happen later, let’s figure out where to store it ...
+//
+//                        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory())
+//                            .appendingPathComponent(UUID().uuidString)
+//                            .appendingPathExtension(request.url!.pathExtension)
+//
+//                        // ... and move it to there
+//
+//                        do {
+//                            try FileManager.default.moveItem(at: location, to: tempURL)
+//                        } catch {
+//                            continuation.resume(throwing: error)
+//                            return
+//                        }
+//
+//                        continuation.resume(returning: (tempURL, response))
+//                    }
+//                }
+//            }
+//        } onCancel: {
+//            Task { await sessionTask.cancel() }
+//        }
+//    }
+//}
+
+//extension URLSession.SessionTask {
+//    func download(for request: URLRequest, completionHandler: @Sendable @escaping (URL?, URLResponse?, Error?) -> Void) {
+//        if case .cancelled = state {
+//            completionHandler(nil, nil, CancellationError())
+//            return
+//        }
+//
+//        let task = session.downloadTask(with: request, completionHandler: completionHandler)
+//
+//        state = .executing(task)
+//        task.resume()
+//    }
+//}
